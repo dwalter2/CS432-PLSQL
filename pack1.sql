@@ -213,3 +213,72 @@ create or replace procedure display_enrolled_classes(input_sid in students.sid%t
 exec display_enrolled_classes('B001');
 exec display_enrolled_classes('B002');
 exec display_enrolled_classes('B003');
+
+create or replace procedure find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) is
+  begin
+  declare
+    cursor c1 is select pre_dept_code,pre_course_no from prerequisites where dept_code = dc and course_no = cn;
+    c1_rec c1%rowtype;
+  begin
+    if(not c1%isopen) then
+      open c1;
+    end if;
+    fetch c1 into c1_rec;
+    if c1%found then
+      dbms_output.put_line(c1_rec.pre_dept_code || c1_rec.pre_course_no);
+    end if;
+    while c1%found loop
+      find_all_prereq(c1_rec.pre_dept_code,c1_rec.pre_course_no);
+      fetch c1 into c1_rec;
+    end loop;
+  end;
+end;
+/
+show errors
+
+insert into courses values('MATH',314,'Discrete');
+insert into prerequisites values('MATH',327,'MATH',314);
+
+exec find_all_prereq('CS',432);
+
+create or replace procedure show_all_enrolled(cid in classes.classid%type) is
+  begin
+  declare
+    cursor c1 is select classid,title,semester,year from classes natural join courses where cid = classid;
+    c1_rec c1%rowtype;
+    cursor c2 is select sid,firstname,lastname from students where sid in(
+      select sid from enrollments where classid = cid
+    );
+    c2_rec c2%rowtype;
+    begin
+    if(not c2%isopen) then
+      open c2;
+    end if;
+    if(not c1%isopen) then
+      open c1;
+    end if;
+    fetch c1 into c1_rec;
+    fetch c2 into c2_rec;
+    if c1%notfound then
+      dbms_output.put_line('The classid is invalid.');
+    elsif c2%notfound then
+      dbms_output.put_line(c1_rec.classid || ' ' || c1_rec.title || ' ' || c1_rec.semester || ' ' ||c1_rec.year);
+      dbms_output.put_line('No student is enrolled in the class');
+    else
+      dbms_output.put_line(c1_rec.classid || ' ' || c1_rec.title || ' ' || c1_rec.semester || ' ' ||c1_rec.year);
+      while c2%found loop
+        dbms_output.put_line(c2_rec.sid || ' ' || c2_rec.firstname || ' ' || c2_rec.lastname);
+        fetch c2 into c2_rec;
+      end loop;
+    end if;
+  end;
+end;
+/
+
+insert into enrollments values('B002','c0001','B');
+
+exec show_all_enrolled('c0001');
+exec show_all_enrolled('c0003');
+insert into courses values('CS',240,'Data Structures');
+insert into classes values('c0003','CS',240,01,2020,'Fall',100,99);
+exec show_all_enrolled('c0003');
