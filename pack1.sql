@@ -282,3 +282,37 @@ exec show_all_enrolled('c0003');
 insert into courses values('CS',240,'Data Structures');
 insert into classes values('c0003','CS',240,01,2020,'Fall',100,99);
 exec show_all_enrolled('c0003');
+
+create or replace procedure enroll_student(studentid in students.sid%type, cid in classes.classid%type) is 
+  begin
+  declare 
+    cursor c1 is select sid from students where sid = studentid;
+    c1_rec c1%rowtype;
+    cursor c2 is select classid from classes where classid = cid;
+    c2_rec c2%rowtype;
+    cursor c3 is select classid from classes where classid = cid and classid in (
+      select classid from enrollments where sid = studentid
+    );
+    cursor c4 is select * from enrollments where classid in 
+    c3_rec c3%rowtype;
+    begin
+    if(not c1%isopen) then
+      open c1;
+    end if;
+    if(not c2%isopen) then
+      open c2;
+    end if;
+    if(not c3%isopen) then
+      open c3;
+    end if;
+    fetch c1 into c1_rec;
+    fetch c2 into c2_rec;
+    fetch c3 into c3_rec;
+    if c1%notfound then 
+      dbms_output.put_line('sid not found');
+    elsif c2%notfound then 
+      dbms_output.put_line('The classid in invalid');
+    elsif c2_rec.limit == c2_rec.class_size then 
+      dbms_output.put_line('The class is full');
+    elsif c3%found then 
+      dbms_output.put_line('The student is already enrolled in this class');
