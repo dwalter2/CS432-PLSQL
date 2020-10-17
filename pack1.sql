@@ -286,16 +286,26 @@ exec show_all_enrolled('c0003');
 create or replace procedure enroll_student(studentid in students.sid%type, cid in classes.classid%type) is 
   begin
   declare 
+    class_count number(2);
+    class_year classes.year%type;
+    class_semester classes.semester%type;
     cursor c1 is select sid from students where sid = studentid;
     c1_rec c1%rowtype;
     cursor c2 is select classid from classes where classid = cid;
     c2_rec c2%rowtype;
     cursor c3 is select classid from classes where classid = cid and classid in (
       select classid from enrollments where sid = studentid
-    );
-    cursor c4 is select * from enrollments where classid in 
+    ); 
     c3_rec c3%rowtype;
+    cursor c4 is select * from enrollments where sid = studentid and classid in (
+      select classid from classes where classid = cid
+    );
+    c4_rec c4%rowtype;
     begin
+    select year,semester into class_year,class_semester from classes where classid = cid;
+    select count(*) into class_count from enrollments where sid = studentid and classid in (
+      select classid from classes where year = class_year and semester = class_semester
+    );
     if(not c1%isopen) then
       open c1;
     end if;
@@ -316,3 +326,5 @@ create or replace procedure enroll_student(studentid in students.sid%type, cid i
       dbms_output.put_line('The class is full');
     elsif c3%found then 
       dbms_output.put_line('The student is already enrolled in this class');
+    elsif class_count > 2 then 
+      dbms_output.put_line('You are overloaded');
