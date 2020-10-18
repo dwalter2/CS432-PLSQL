@@ -286,9 +286,13 @@ exec show_all_enrolled('c0003');
 create or replace procedure enroll_student(studentid in students.sid%type, cid in classes.classid%type) is 
   begin
   declare 
+    prereq_taken_count number(2);
+    prereq_total_count number(2);
     class_count number(2);
     class_year classes.year%type;
     class_semester classes.semester%type;
+    class_dc classes.dept_code%type;
+    class_cn classes.course_no%type;
     cursor c1 is select sid from students where sid = studentid;
     c1_rec c1%rowtype;
     cursor c2 is select classid from classes where classid = cid;
@@ -302,10 +306,16 @@ create or replace procedure enroll_student(studentid in students.sid%type, cid i
     );
     c4_rec c4%rowtype;
     begin
-    select year,semester into class_year,class_semester from classes where classid = cid;
+    select year,semester,dept_code,course_no into class_year,class_semester,class_dc,class_cn from classes where classid = cid;
     select count(*) into class_count from enrollments where sid = studentid and classid in (
       select classid from classes where year = class_year and semester = class_semester
     );
+    select count(*) into prereq_taken_count from classes where classid in (
+      select classid from enrollments where sid = studentid and lgrade = 'A' or lgrade = 'B' or lgrade = 'C'
+    ) and (dept_code,course_no) in (
+      select pre_dept_code,pre_course_no from prerequisites where dept_code = class_dc and course_no = class_cn);
+    )
+    select count(*) into prereq_total_count from prerequisites where dept_code = class_dc and course_no = class_cn);
     if(not c1%isopen) then
       open c1;
     end if;
@@ -328,3 +338,12 @@ create or replace procedure enroll_student(studentid in students.sid%type, cid i
       dbms_output.put_line('The student is already enrolled in this class');
     elsif class_count > 2 then 
       dbms_output.put_line('You are overloaded');
+    elsif prereq_taken_count != prereq_total_count then 
+      dbms_output.put_line('Prerequisite courses have not been completed');
+    else 
+      insert into enrollments values(studentid,cid,'I')
+      dbms_output.put_line('Student successfully enrolled');
+    end if;
+  end;
+end;
+/
