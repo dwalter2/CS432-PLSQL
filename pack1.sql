@@ -1,3 +1,5 @@
+set serveroutput on;
+
 start proj2_tables;
 
 create or replace trigger trig1
@@ -17,7 +19,21 @@ create or replace trigger trig1
     close c1;
   end;
 /
+/*
+create or replace trigger trig10_1
+  before insert on students
+    for each row
+    declare
+      user_name varchar2(10);
+    begin
+      select user into user_name from dual;
+      insert into logs values(counter,user_name,SYSTIMESTAMP,'students','insert',:old.sid);
+      counter := counter + 1;
+    end;
+/
+show errors
 /* need to get it to print the logid being 7 characters long -- issue resolved with lpad */
+
 insert into logs values(0111,'tim',date '1998-01-01','some','add','something');
 
 create or replace procedure show_students
@@ -432,7 +448,7 @@ exec drop_student('B001','c0002');
 exec drop_student('B009','c0001');
 exec drop_student('B001','c0009');
 exec drop_student('B004','c0004');
-
+/*
 create or replace trigger trig3
   before delete on students
   declare
@@ -441,7 +457,7 @@ create or replace trigger trig3
       delete from enrollments where sid = deletedrow.sid;
   end;
 /
-
+*/
 show errors
 create or replace procedure delete_student(stid in students.sid%type) is begin
   declare
@@ -455,6 +471,7 @@ create or replace procedure delete_student(stid in students.sid%type) is begin
     if (c1%notfound) then
       dbms_output.put_line('sid is invalid.');
     else
+      delete from enrollments where sid = stid;
       delete from students where sid = stid;
     end if;
   end;
@@ -468,5 +485,21 @@ insert into enrollments values('B004','c0001','A');
 exec show_enrollments;
 
 create or replace trigger trig4
-  after insert or delete on
+  before delete on students
+  for each row
+  declare
+    cursor c1 is select sid from students where sid = :old.sid;
+    c1_rec c1%rowtype;
+  begin
+    if(not c1%isopen) then
+      open c1;
+    end if;
+    fetch c1 into c1_rec;
+    while (c1%found) loop
+      dbms_output.put_line(c1_rec.sid);
+      fetch c1 into c1_rec;
+    end loop;
+  end;
+/
+show errors
 */
