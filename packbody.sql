@@ -92,7 +92,7 @@ end;
 procedure show_logs is
  begin
   declare
-    cursor c2 is select * from logs;
+    cursor c2 is select lpad(logid, 7, '0') logid,who,time,table_name,operation,key_value from logs;
     c2_rec c2%rowtype;
   begin
     if(not c2%isopen) then
@@ -324,7 +324,7 @@ procedure drop_student(stid in students.sid%type, clid in classes.classid%type) 
       end if;
     end;
   end;
-procedure delete_student(stid in students.sid%type) is begin 
+procedure delete_student(stid in students.sid%type) is begin
   declare
   cursor c1 is select * from students where sid = stid;
   c1_rec c1%rowtype;
