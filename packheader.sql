@@ -16,8 +16,8 @@ create or replace package pack2 as
     lname in students.lastname%type,
     st in students.status%type,
     gp in students.gpa%type,
-    em in students.email%type) return number(1);
-  procedure display_enrolled_classes(input_sid in students.sid%type);
+    em in students.email%type) return number;
+  function display_enrolled_classes(input_sid in students.sid%type) return number;
   procedure find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type);
   procedure show_all_enrolled(cid in classes.classid%type);
   procedure drop_student(stid in students.sid%type, clid in classes.classid%type);
