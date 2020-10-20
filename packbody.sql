@@ -1,122 +1,67 @@
-create or replace package body pack1 as
-procedure show_students is
+create or replace package body pack2 as
+function show_students
+  return ref_cursor as rc ref_cursor;
   begin
-  declare
-    cursor c2 is select sid,firstname,lastname,status,gpa,email from students;
-    c2_rec c2%rowtype;
-  begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    dbms_output.put_line('sid firstname lastname status gpa email');
-    while c2%found loop
-      dbms_output.put_line(c2_rec.sid || ' ' || c2_rec.firstname || ' ' || c2_rec.lastname || ' ' || c2_rec.status ||' ' || c2_rec.gpa || ' ' || c2_rec.email);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select * from students;
+    return rc;
   end;
-end;
-procedure show_courses is
+function show_courses
+  return ref_cursor as rc ref_cursor;
   begin
-  declare
-    cursor c2 is select * from courses;
-    c2_rec c2%rowtype;
-  begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    while c2%found loop
-      dbms_output.put_line(c2_rec.dept_code || ' ' || c2_rec.course_no || ' ' || c2_rec.title);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select * from courses;
+    return rc;
   end;
-end;
 
-procedure show_prerequisites is
- begin
-  declare
-    cursor c2 is select * from prerequisites;
-    c2_rec c2%rowtype;
+function show_prerequisites
+  return ref_cursor as rc ref_cursor;
   begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    while c2%found loop
-      dbms_output.put_line(c2_rec.dept_code || ' ' || c2_rec.course_no || ' ' || c2_rec.pre_dept_code || ' ' || c2_rec.pre_course_no);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select * from prerequisites;
+    return rc;
   end;
-end;
-
-procedure show_classes is
- begin
-  declare
-    cursor c2 is select * from classes;
-    c2_rec c2%rowtype;
+function show_classes
+  return ref_cursor as rc ref_cursor;
   begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    while c2%found loop
-      dbms_output.put_line(c2_rec.classid || ' ' || c2_rec.dept_code || ' ' || c2_rec.course_no || ' ' || c2_rec.sect_no || ' ' || c2_rec.year || ' ' || c2_rec.semester || ' ' || c2_rec.limit || ' ' || c2_rec.class_size);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select * from classes;
+    return rc;
   end;
-end;
 
-procedure show_enrollments is
-begin
-  declare
-    cursor c2 is select * from enrollments;
-    c2_rec c2%rowtype;
+function show_enrollments
+  return ref_cursor as rc ref_cursor;
   begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    while c2%found loop
-      dbms_output.put_line(c2_rec.sid || ' ' || c2_rec.classid || ' ' || c2_rec.lgrade);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select * from enrollments;
+    return rc;
   end;
-end;
-
-procedure show_logs is
- begin
-  declare
-    cursor c2 is select lpad(logid, 7, '0') logid,who,time,table_name,operation,key_value from logs;
-    c2_rec c2%rowtype;
+function show_logs
+  return ref_cursor as rc ref_cursor;
   begin
-    if(not c2%isopen) then
-      open c2;
-    end if;
-    fetch c2 into c2_rec;
-    while c2%found loop
-      dbms_output.put_line(c2_rec.logid || ' ' || c2_rec.who || ' ' || c2_rec.time || ' ' || c2_rec.table_name || ' ' || c2_rec.operation || ' ' || c2_rec.key_value);
-      fetch c2 into c2_rec;
-    end loop;
-    close c2;
+    open rc for select lpad(logid, 7, '0') logid,who,time,table_name,operation,key_value from logs;
+    return rc;
   end;
-end;
 
-procedure add_student(
+function add_student(
   input_sid in students.sid%type,
   fname in students.firstname%type,
   lname in students.lastname%type,
   st in students.status%type,
   gp in students.gpa%type,
-  em in students.email%type) is
-begin
+  em in students.email%type)
+  return number as ret_val number(1);
   begin
-  insert into students values(input_sid,fname,lname,st,gp,em);
+  declare
+    cursor c1 is select * from students where sid = input_sid;
+    c1_rec c1%rowtype;
+    begin
+    if(not c1%isopen) then
+      open c1;
+    end if;
+    fetch c1 into c1_rec;
+    if(c1%notfound) then
+    insert into students values(input_sid,fname,lname,st,gp,em);
+    ret_val := 1;
+    else
+    ret_val := 0;
+    end if;
+    return ret_val;
   end;
 end;
 
