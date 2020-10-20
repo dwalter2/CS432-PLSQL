@@ -65,7 +65,8 @@ function add_student(
   end;
 end;
 
-procedure display_enrolled_classes(input_sid in students.sid%type) is
+
+function display_enrolled_classes(input_sid in students.sid%type) return number as ret_val number(1);
   begin
   declare
     cursor c1 is select sid,firstname,lastname,status from students where sid = input_sid;
@@ -83,11 +84,14 @@ procedure display_enrolled_classes(input_sid in students.sid%type) is
     end if;
     fetch c1 into c1_rec;
     if(c1%notfound) then
+      ret_val := 0;
       dbms_output.put_line('The SID is invalid.');
     elsif(c2%notfound) then
       dbms_output.put_line(c1_rec.sid || ' ' || c1_rec.firstname || ' ' || c1_rec.lastname || ' ' || c1_rec.status);
       dbms_output.put_line('The student has not taken any course');
+      ret_val := 1;
     else
+      ret_val := 2;
       dbms_output.put_line(c1_rec.sid || ' ' || c1_rec.firstname || ' ' || c1_rec.lastname || ' ' || c1_rec.status);
       while c2%found loop
         dbms_output.put_line(c2_rec.classid || ' ' || c2_rec.dept_code || ' ' || c2_rec.course_no || ' ' || c2_rec.title);
@@ -96,6 +100,7 @@ procedure display_enrolled_classes(input_sid in students.sid%type) is
     end if;
       close c2;
       close c1;
+      return ret_val;
     end;
   end;
 
