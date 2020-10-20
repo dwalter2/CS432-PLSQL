@@ -104,11 +104,12 @@ function display_enrolled_classes(input_sid in students.sid%type) return number 
     end;
   end;
 
-procedure find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) is
+function find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) return number as ret_val number(1);
   begin
   declare
     cursor c1 is select pre_dept_code,pre_course_no from prerequisites where dept_code = dc and course_no = cn;
     c1_rec c1%rowtype;
+    x number(1);
   begin
     if(not c1%isopen) then
       open c1;
@@ -118,13 +119,15 @@ procedure find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%t
       dbms_output.put_line(c1_rec.pre_dept_code || c1_rec.pre_course_no);
     end if;
     while c1%found loop
-      find_all_prereq(c1_rec.pre_dept_code,c1_rec.pre_course_no);
+      x := find_all_prereq(c1_rec.pre_dept_code,c1_rec.pre_course_no);
       fetch c1 into c1_rec;
     end loop;
+    ret_val := 0;
+    return ret_val;
   end;
 end;
 
-procedure show_all_enrolled(cid in classes.classid%type) is
+function show_all_enrolled(cid in classes.classid%type) return number as ret_val number(1);
   begin
   declare
     cursor c1 is select classid,title,semester,year from classes natural join courses where cid = classid;
@@ -154,10 +157,12 @@ procedure show_all_enrolled(cid in classes.classid%type) is
         fetch c2 into c2_rec;
       end loop;
     end if;
+    ret_val := 0;
+    return ret_val;
   end;
 end;
 
-procedure enroll_student(studentid in students.sid%type, cid in classes.classid%type) is
+function enroll_student(studentid in students.sid%type, cid in classes.classid%type) return number as ret_val number(1);
   begin
   declare
     prereq_taken_count number(2);
@@ -217,10 +222,12 @@ procedure enroll_student(studentid in students.sid%type, cid in classes.classid%
       insert into enrollments values(studentid,cid,'I');
       dbms_output.put_line('Student successfully enrolled');
     end if;
+    ret_val := 0;
+    return ret_val;
   end;
 end;
 
-procedure drop_student(stid in students.sid%type, clid in classes.classid%type) is
+function drop_student(stid in students.sid%type, clid in classes.classid%type) return number as ret_val number(1);
   begin
   declare
     num_students number(3);
@@ -272,9 +279,12 @@ procedure drop_student(stid in students.sid%type, clid in classes.classid%type) 
         end if;
         delete from enrollments where sid = stid and classid = clid;
       end if;
+      ret_val:=0;
+      return ret_val;
     end;
   end;
-procedure delete_student(stid in students.sid%type) is begin
+function delete_student(stid in students.sid%type) return number as ret_val number(1);
+ begin
   declare
   cursor c1 is select * from students where sid = stid;
   c1_rec c1%rowtype;
@@ -289,6 +299,8 @@ procedure delete_student(stid in students.sid%type) is begin
       --delete from enrollments where sid = stid;
       delete from students where sid = stid;
     end if;
+    ret_val := 0;
+    return ret_val;
   end;
 end;
 end;
