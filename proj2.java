@@ -16,7 +16,12 @@ public class proj2 {
             OracleDataSource ds = new oracle.jdbc.pool.OracleDataSource();
             ds.setURL("jdbc:oracle:thin:@castor.cc.binghamton.edu:1521:ACAD111");
             Connection conn = ds.getConnection("dwalter2", "Mysterio1");
-
+            /*Statement s = conn.createStatement();
+            s.executeUpdate("start packheader;");
+            s.executeUpdate("start packbody;");
+            s.executeUpdate("start triggers;");
+            s.executeUpdate("start table_filler;");
+            */
             while(true) {
                 BufferedReader  readKeyBoard;
                 String option;
@@ -148,12 +153,136 @@ public class proj2 {
                     System.out.println("SID has already been used.");
                   }
                 }
+                else if(option.equals("3")){
+                  System.out.print("Enter SID: ");
+                  String sid = readKeyBoard.readLine();
+                  Statement st = conn.createStatement();
+                  st.executeUpdate("begin dbms_output.enable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.delete_student(?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  cs.registerOutParameter(1, Types.INTEGER);
+                  cs.setString(2, sid);
+                  cs.registerOutParameter(3, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  cs.execute();
+                  int ret = cs.getInt(1);
+                  Array array = null;
+                  System.out.println("DISPLAYING RESULTS FROM QUERY IF ANY");
+                array = cs.getArray(3);
+                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                for(int i = 0 ; i < l.size()-1 ; i++){
+                    System.out.println(l.get(i));
+
+                }
+                if (array != null)
+                    array.free();
+
+
+                }
+                else if(option.equals("4")){
+                  System.out.print("Enter SID: ");
+                  String sid = readKeyBoard.readLine();
+                  System.out.print("Enter classid: ");
+                  String cid = readKeyBoard.readLine();
+                  Statement st = conn.createStatement();
+                  st.executeUpdate("begin dbms_output.enable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.enroll_student(?,?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  cs.registerOutParameter(1, Types.INTEGER);
+                  cs.setString(2, sid);
+                  cs.setString(3, cid);
+                  cs.registerOutParameter(4, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  cs.execute();
+                  int ret = cs.getInt(1);
+                  Array array = null;
+                  System.out.println("DISPLAYING RESULTS FROM QUERY");
+                array = cs.getArray(4);
+                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                for(int i = 0 ; i < l.size()-1 ; i++){
+                    System.out.println(l.get(i));
+
+                }
+                if (array != null)
+                    array.free();
+                }
+                else if(option.equals("5")){
+                  System.out.print("Enter SID: ");
+                  String sid = readKeyBoard.readLine();
+                  System.out.print("Enter classid: ");
+                  String cid = readKeyBoard.readLine();
+                  Statement st = conn.createStatement();
+                  st.executeUpdate("begin dbms_output.enable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.drop_student(?,?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  cs.registerOutParameter(1, Types.INTEGER);
+                  cs.setString(2, sid);
+                  cs.setString(3, cid);
+                  cs.registerOutParameter(4, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  cs.execute();
+                  int ret = cs.getInt(1);
+                  Array array = null;
+                  System.out.println("DISPLAYING RESULTS FROM QUERY");
+                array = cs.getArray(4);
+                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                for(int i = 0 ; i < l.size()-1 ; i++){
+                    System.out.println(l.get(i));
+
+                }
+                if (array != null)
+                    array.free();
+                }
+                else if(option.equals("6")){
+                  System.out.print("Enter Department Code: ");
+                  String dc = readKeyBoard.readLine();
+                  System.out.print("Enter Course Number: ");
+                  String cn1 = readKeyBoard.readLine();
+                  int cn = Integer.parseInt(cn1);
+                  Statement st = conn.createStatement();
+                  st.executeUpdate("begin dbms_output.enable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.find_all_prereq(?,?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  cs.registerOutParameter(1, Types.INTEGER);
+                  cs.setString(2, dc);
+                  cs.setInt(3,cn);
+                  cs.registerOutParameter(4, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  cs.execute();
+                  int ret = cs.getInt(1);
+                  Array array = null;
+                  System.out.println("DISPLAYING RESULTS FROM QUERY");
+                array = cs.getArray(4);
+                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                for(int i = 0 ; i < l.size()-1 ; i++){
+                    System.out.println(l.get(i));
+
+                }
+                if (array != null)
+                    array.free();
+
+
+                }
+                else if(option.equals("7")){
+                  System.out.print("Enter classid: ");
+                  String sid = readKeyBoard.readLine();
+                  Statement st = conn.createStatement();
+                  st.executeUpdate("begin dbms_output.enable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.show_all_enrolled(?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  cs.registerOutParameter(1, Types.INTEGER);
+                  cs.setString(2, sid);
+                  cs.registerOutParameter(3, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  cs.execute();
+                  int ret = cs.getInt(1);
+                  Array array = null;
+                  System.out.println("DISPLAYING RESULTS FROM QUERY");
+                array = cs.getArray(3);
+                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                for(int i = 0 ; i < l.size()-1 ; i++){
+                    System.out.println(l.get(i));
+
+                }
+                if (array != null)
+                    array.free();
+                }
                 else if(option.equals("8")){
                   System.out.print("Enter SID: ");
                   String sid = readKeyBoard.readLine();
                   Statement st = conn.createStatement();
                   st.executeUpdate("begin dbms_output.enable(); end;");
-                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.display_enrolled_classes(?); dbms_output.get_lines(?, num1); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.display_enrolled_classes(?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
                   cs.registerOutParameter(1, Types.INTEGER);
                   cs.setString(2, sid);
                   cs.registerOutParameter(3, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
