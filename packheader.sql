@@ -18,11 +18,11 @@ create or replace package pack2 as
     gp in students.gpa%type,
     em in students.email%type) return number;
   function display_enrolled_classes(input_sid in students.sid%type) return number;
-  procedure find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type);
-  procedure show_all_enrolled(cid in classes.classid%type);
-  procedure drop_student(stid in students.sid%type, clid in classes.classid%type);
-  procedure enroll_student(studentid in students.sid%type, cid in classes.classid%type);
-  procedure delete_student(stid in students.sid%type);
+  function find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) return number;
+  function show_all_enrolled(cid in classes.classid%type) return number;
+  function drop_student(stid in students.sid%type, clid in classes.classid%type) return number;
+  function enroll_student(studentid in students.sid%type, cid in classes.classid%type) return number;
+  function delete_student(stid in students.sid%type) return number;
 end;
 /
 show errors
