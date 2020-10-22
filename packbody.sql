@@ -1,8 +1,8 @@
 create or replace package body pack2 as
 function show_students
-  return ref_cursor as rc ref_cursor;
+  return ref_cursor as rc ref_cursor;   
   begin
-    open rc for select * from students;
+    open rc for select * from students;   -- the follow 'show_*' functions store the query results of specific table information into return variables, or reference cursors.
     return rc;
   end;
 function show_courses
@@ -38,7 +38,7 @@ function show_logs
     return rc;
   end;
 
-function add_student(
+function add_student(                     --to add students, take in student information to store in variables. if student id doesn't already exist, insert student and return successful '1' value
   input_sid in students.sid%type,
   fname in students.firstname%type,
   lname in students.lastname%type,
@@ -85,9 +85,9 @@ function display_enrolled_classes(input_sid in students.sid%type) return number 
     fetch c1 into c1_rec;
     if(c1%notfound) then
       ret_val := 0;
-      dbms_output.put_line('The SID is invalid.');
+      dbms_output.put_line('The SID is invalid.');              --error checking for invalid sid where cursor is empty
     elsif(c2%notfound) then
-      dbms_output.put_line(c1_rec.sid || ' ' || c1_rec.firstname || ' ' || c1_rec.lastname || ' ' || c1_rec.status);
+      dbms_output.put_line(c1_rec.sid || ' ' || c1_rec.firstname || ' ' || c1_rec.lastname || ' ' || c1_rec.status);    --special case where sid is found but student not associated with any claassid in enrollments, c2 stores this info 
       dbms_output.put_line('The student has not taken any course');
       ret_val := 1;
     else
@@ -104,7 +104,7 @@ function display_enrolled_classes(input_sid in students.sid%type) return number 
     end;
   end;
 
-function find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) return number as ret_val number(1);
+function find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%type) return number as ret_val number(1); --this function utilizes recursion to find the indirect prereqs and find the prereqs of the prereqs so to speak
   begin
   declare
     cursor c1 is select pre_dept_code,pre_course_no from prerequisites where dept_code = dc and course_no = cn;
@@ -117,9 +117,11 @@ function find_all_prereq(dc in courses.dept_code%type,cn in courses.course_no%ty
     fetch c1 into c1_rec;
     if c1%found then
       dbms_output.put_line(c1_rec.pre_dept_code || c1_rec.pre_course_no);
+      else 
+        dbms_output.put_line('No prerequisites found for ' || dc || cn);
     end if;
     while c1%found loop
-      x := find_all_prereq(c1_rec.pre_dept_code,c1_rec.pre_course_no);
+      x := find_all_prereq(c1_rec.pre_dept_code,c1_rec.pre_course_no);    --if prereq found, ensure to capture its prereqs as well for the original class to contain all
       fetch c1 into c1_rec;
     end loop;
     ret_val := 0;
@@ -190,7 +192,7 @@ function enroll_student(studentid in students.sid%type, cid in classes.classid%t
       select classid from classes where year = class_year and semester = class_semester
     );
     select count(*) into prereq_taken_count from classes where classid in (
-      select classid from enrollments where sid = studentid and lgrade = 'A' or lgrade = 'B' or lgrade = 'C'
+      select classid from enrollments where sid = studentid and (lgrade = 'A' or lgrade = 'B' or lgrade = 'C')
     ) and (dept_code,course_no) in (
       select pre_dept_code,pre_course_no from prerequisites where dept_code = class_dc and course_no = class_cn);
     select count(*) into prereq_total_count from prerequisites where dept_code = class_dc and course_no = class_cn;
