@@ -15,19 +15,20 @@ public class proj2 {
             //Connection to Oracle server
             OracleDataSource ds = new oracle.jdbc.pool.OracleDataSource();
             ds.setURL("jdbc:oracle:thin:@castor.cc.binghamton.edu:1521:ACAD111");
-            Connection conn = ds.getConnection("dwalter2", "Mysterio1");
+            Connection conn = ds.getConnection("jwhitak4", "Scwgya1L");
             /*Statement s = conn.createStatement();
             s.executeUpdate("start packheader;");
             s.executeUpdate("start packbody;");
             s.executeUpdate("start triggers;");
             s.executeUpdate("start table_filler;");
             */
-            while(true) {
+            boolean flag = true;
+            while(flag == true) { //while loop with bool var to allow repeated command execution
                 BufferedReader  readKeyBoard;
                 String option;
                 String sub_option;
                 readKeyBoard = new BufferedReader(new InputStreamReader(System.in));
-                System.out.println("Please select a command option");
+                System.out.println("Please select a command option"); //command menu 
                 System.out.println("1. Display a table");
                 System.out.println("2. Add a student");
                 System.out.println("3. Delete a student");
@@ -36,10 +37,11 @@ public class proj2 {
                 System.out.println("6. Find all prerequisites for a class");
                 System.out.println("7. Show everyone enrolled in class");
                 System.out.println("8. Display all classes a student is enrolled in");
+                System.out.println("9. Exit java program");
                 option = readKeyBoard.readLine();
 
                 if(option.equals("1")) {
-                    System.out.println("1. Display students table");
+                    System.out.println("1. Display students table"); //sub menu so user can specify which table to display
                     System.out.println("2. Display courses table");
                     System.out.println("3. Display classes table");
                     System.out.println("4. Display enrollments table");
@@ -48,8 +50,8 @@ public class proj2 {
                     sub_option = readKeyBoard.readLine();
                     switch(sub_option) {
                         case "1":
-                            CallableStatement cs = conn.prepareCall("begin ? := pack2.show_students(); end;");
-                            cs.registerOutParameter(1, OracleTypes.CURSOR);
+                            CallableStatement cs = conn.prepareCall("begin ? := pack2.show_students(); end;"); //each case uses the same logic/code to store the plsql function,
+                            cs.registerOutParameter(1, OracleTypes.CURSOR);                                    //and then print out the attributes of each tuple with a while loop to loop through the ResultSet var
                             cs.execute();
                             ResultSet rs = (ResultSet)cs.getObject(1);
                             while (rs.next()) {
@@ -113,7 +115,11 @@ public class proj2 {
                         cs.execute();
                         rs = (ResultSet)cs.getObject(1);
                         while (rs.next()) {
-                            System.out.println(rs.getInt(1) + "\t" +
+                            String logid = Integer.toString(rs.getInt(1));
+                            while(logid.length() != 7) {
+                                logid = "0" + logid;
+                            }
+                            System.out.println(logid + "\t" +
                                 rs.getString(2) + "\t" + rs.getDate(3) + "\t" + rs.getString(4)
                                 + "\t" + rs.getString(5) + "\t" + rs.getString(6));
                         }
@@ -122,7 +128,7 @@ public class proj2 {
                     }
                 }
                 else if(option.equals("2")){
-                  System.out.print("Enter SID: ");
+                  System.out.print("Enter SID: ");          //prompt user for student information
                   String sid = readKeyBoard.readLine();
                   System.out.print("Enter first name: ");
                   String fname = readKeyBoard.readLine();
@@ -135,9 +141,9 @@ public class proj2 {
                   double gpa = Double.parseDouble(gpa1);
                   System.out.print("Enter email: ");
                   String email = readKeyBoard.readLine();
-                  CallableStatement cs = conn.prepareCall("begin ? := pack2.add_student(?,?,?,?,?,?); end;");
-                  cs.registerOutParameter(1, Types.INTEGER);
-                  cs.setString(2,sid);
+                  CallableStatement cs = conn.prepareCall("begin ? := pack2.add_student(?,?,?,?,?,?); end;");   //prepare to add attributes using the add_student function with unknown parameters
+                  cs.registerOutParameter(1, Types.INTEGER);              
+                  cs.setString(2,sid);          // add the stored variable information from user to the CallableStatment and then execute it with execute()
                   cs.setString(3,fname);
                   cs.setString(4,lname);
                   cs.setString(5,status);
@@ -145,7 +151,7 @@ public class proj2 {
                   cs.setString(7,email);
                   cs.execute();
                   int ret = cs.getInt(1);
-                  if(ret == 1){
+                  if(ret == 1){             //logic for error checking carried over from plsql using java if statements
                     System.out.println("Student successfully inserted");
 
                   }
@@ -153,29 +159,27 @@ public class proj2 {
                     System.out.println("SID has already been used.");
                   }
                 }
-                else if(option.equals("3")){
+                else if(option.equals("3")){           
                   System.out.print("Enter SID: ");
                   String sid = readKeyBoard.readLine();
                   Statement st = conn.createStatement();
                   st.executeUpdate("begin dbms_output.enable(); end;");
-                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.delete_student(?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
-                  cs.registerOutParameter(1, Types.INTEGER);
-                  cs.setString(2, sid);
-                  cs.registerOutParameter(3, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.delete_student(?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");  //prepare function call with buffer and save dbms_output into array for display
+                  cs.registerOutParameter(1, Types.INTEGER);    // define return value
+                  cs.setString(2, sid);   //sets parameter with student to delete
+                  cs.registerOutParameter(3, Types.ARRAY, "DBMSOUTPUT_LINESARRAY"); //define return type for written output to java terminal
                   cs.execute();
                   int ret = cs.getInt(1);
                   Array array = null;
                   System.out.println("DISPLAYING RESULTS FROM QUERY IF ANY");
-                array = cs.getArray(3);
-                List<Object> l = Arrays.asList((Object[]) array.getArray());
-                for(int i = 0 ; i < l.size()-1 ; i++){
-                    System.out.println(l.get(i));
-
-                }
-                if (array != null)
-                    array.free();
-
-
+                  array = cs.getArray(3);
+                  List<Object> l = Arrays.asList((Object[]) array.getArray());  //store query results/output into a List and iterate through them 
+                  for(int i = 0 ; i < l.size()-1 ; i++){
+                      System.out.println(l.get(i));
+                  
+                  }
+                  if (array != null)
+                      array.free();
                 }
                 else if(option.equals("4")){
                   System.out.print("Enter SID: ");
@@ -184,7 +188,7 @@ public class proj2 {
                   String cid = readKeyBoard.readLine();
                   Statement st = conn.createStatement();
                   st.executeUpdate("begin dbms_output.enable(); end;");
-                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.enroll_student(?,?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;");
+                  CallableStatement cs = conn.prepareCall("declare num1 integer:= 1000; begin ? := pack2.enroll_student(?,?); dbms_output.get_lines(?, num1); dbms_output.disable(); end;"); //prep function to enroll student based on sid input
                   cs.registerOutParameter(1, Types.INTEGER);
                   cs.setString(2, sid);
                   cs.setString(3, cid);
@@ -194,7 +198,7 @@ public class proj2 {
                   Array array = null;
                   System.out.println("DISPLAYING RESULTS FROM QUERY");
                 array = cs.getArray(4);
-                List<Object> l = Arrays.asList((Object[]) array.getArray());
+                List<Object> l = Arrays.asList((Object[]) array.getArray());  //same iteration as above
                 for(int i = 0 ; i < l.size()-1 ; i++){
                     System.out.println(l.get(i));
 
@@ -268,14 +272,14 @@ public class proj2 {
                   int ret = cs.getInt(1);
                   Array array = null;
                   System.out.println("DISPLAYING RESULTS FROM QUERY");
-                array = cs.getArray(3);
-                List<Object> l = Arrays.asList((Object[]) array.getArray());
-                for(int i = 0 ; i < l.size()-1 ; i++){
-                    System.out.println(l.get(i));
+                    array = cs.getArray(3);
+                    List<Object> l = Arrays.asList((Object[]) array.getArray());
+                    for(int i = 0 ; i < l.size()-1 ; i++){
+                        System.out.println(l.get(i));
 
-                }
-                if (array != null)
-                    array.free();
+                    }
+                    if (array != null)
+                        array.free();
                 }
                 else if(option.equals("8")){
                   System.out.print("Enter SID: ");
@@ -290,23 +294,29 @@ public class proj2 {
                   int ret = cs.getInt(1);
                   Array array = null;
                   System.out.println("DISPLAYING RESULTS FROM QUERY");
-                array = cs.getArray(3);
-                List<Object> l = Arrays.asList((Object[]) array.getArray());
-                for(int i = 0 ; i < l.size()-1 ; i++){
-                    System.out.println(l.get(i));
-
+                    array = cs.getArray(3);
+                    List<Object> l = Arrays.asList((Object[]) array.getArray());
+                    for(int i = 0 ; i < l.size()-1 ; i++){
+                        System.out.println(l.get(i));
+                
+                    }
+                    if (array != null)
+                        array.free();
+            
+            
                 }
-                if (array != null)
-                    array.free();
-
-
+                else if(option.equals("9")) { //option for ending the while loop and exitting the program
+                    flag = false;
+                }
+                else {
+                    System.out.println("Invalid input, try again"); //option error checking
                 }
             }
 
             //close the connection
             //conn.close();
         }
-        catch (SQLException ex) { System.out.println ("\n*** SQLException caught ***\n" + ex.getMessage());}
+        catch (SQLException ex) { System.out.println ("\n*** SQLException caught ***\n" + ex.getMessage());} //sql exception catching 
         catch (Exception e) {System.out.println ("\n*** other Exception caught ***\n");}
     }
 }
